@@ -1,0 +1,22 @@
+# Build output
+**/bin/
+**/obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+*.DotSettings.user
+
+# IDE/editor folders
+.vs/
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+
+# Local tooling/config
+.claude/
