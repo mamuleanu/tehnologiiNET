@@ -4,19 +4,30 @@ using TehnDotNet.ApplicationLayer.Services;
 using TehnDotNet.ApplicationLayer.Services.Interfaces;
 using TehnDotNet.Infrastructure.Interfaces;
 using TehnDotNet.Infrastructure.Repositories;
+using TehnDotNet.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+
+// Swagger
+builder.Services.AddOpenApi();
+builder.Services.AddSwaggerGen();
+// End Swagger
+
+// Adding logging to our app
+builder.Services.AddLogging(logging => logging.AddConsole());
+//
 builder.Services.AddScoped<IBookRepository, BookRepository>();
 builder.Services.AddScoped<IBooksService, BookService>();
+builder.Services.AddScoped<IPublisherRepository, PublisherRepository>();
+builder.Services.AddScoped<IPublisherService, PublisherService>();
+builder.Services.AddScoped<IAuthorRepository, AuthorRepository>();
+builder.Services.AddScoped<IAuthorService, AuthorService>();
 #warning Sensitive data here. Please move it to appsettings.json.
-builder.Services.AddDbContext<DatabaseContext>(options => options.UseNpgsql("Host=localhost;Port=5432;Database=libraryv2;Username=postgres;Password=replaceme"));
-
-
-
-
+builder.Services.AddDbContext<DatabaseContext>(options => options.UseNpgsql("Host=localhost;Port=5432;Database=libraryv2;Username=postgres;Password="));
 
 var app = builder.Build();
 
@@ -24,9 +35,8 @@ using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
     context.Database.Migrate();
+    DatabaseSeeder.SeedAuthorsAndPublishers(context);
 }
-
-
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -36,16 +46,25 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+if (app.Environment.IsDevelopment())
+{
+    // Swagger + OpenAPI
+    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+    // Swagger + OpenAPI
+}
+
 app.UseHttpsRedirection();
 app.UseRouting();
 
 app.UseAuthorization();
 
+app.MapControllers();
 app.MapStaticAssets();
 
 app.MapControllerRoute(
         name: "default",
         pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
-
 app.Run();

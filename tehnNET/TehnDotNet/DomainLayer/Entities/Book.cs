@@ -5,9 +5,12 @@ namespace TehnDotNet.Entities;
 
 public class Book
 {
+    public Book()
+    {
+        this.Authors =  new HashSet<Author>();
+    }
     public long Id { get; set; }
     public string Title { get; set; }
-    public string Author { get; set; }
     public string ISBN { get; set; }
     public int Pages { get; set; }
     public string Category { get; set; }
@@ -21,5 +24,7 @@ public class Book
     public long PublisherId { get; set; }
 
     public virtual Publisher Publisher { get; set; }
+
+    public virtual ICollection<Author> Authors { get; set; }
 
 }

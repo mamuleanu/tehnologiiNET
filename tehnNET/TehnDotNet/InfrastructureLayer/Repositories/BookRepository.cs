@@ -25,7 +25,6 @@ public class BookRepository : IBookRepository
       if (existingBook != null)
       {
          existingBook.Title = book.Title;
-         existingBook.Author = book.Author;
          existingBook.Description = book.Description;
          existingBook.ISBN = book.ISBN;
          existingBook.Pages = book.Pages;
@@ -42,8 +41,8 @@ public class BookRepository : IBookRepository
       return _context.Books.FirstOrDefault(x => x.Id == Id);
    }
 
-   public List<Book> GetAll()
+   public IQueryable<Book> GetAll()
    {
-      return _context.Books.ToList();
+      return _context.Books.AsQueryable();
    }
 }

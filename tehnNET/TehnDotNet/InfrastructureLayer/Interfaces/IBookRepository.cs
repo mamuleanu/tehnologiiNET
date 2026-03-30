@@ -7,5 +7,5 @@ public interface IBookRepository
     void Add(Book book);
     void Update(Book book);
     Book GetById(long Id);
-    List<Book> GetAll();
+    IQueryable<Book> GetAll();
 }
