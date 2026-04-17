@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TehnDotNet.ApplicationLayer.Dto;
 using TehnDotNet.ApplicationLayer.Services.Interfaces;
@@ -19,12 +20,14 @@ public class HomeController : ControllerBase
         _logger = logger;
     }
 
+    [Authorize(Roles = "Admin")]
     [HttpGet]
     public IActionResult Index()
     {
         var books = _booksService.GetAll();
         return Ok(books);
     }
+
 
     [HttpGet("{id}")]
     public IActionResult GetById(long id)
@@ -34,6 +37,7 @@ public class HomeController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize]
     public IActionResult Create([FromBody] BookDto book)
     {
         _booksService.Create(book);

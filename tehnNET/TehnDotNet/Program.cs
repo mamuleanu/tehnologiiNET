@@ -1,4 +1,8 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using TehnDotNet;
 using TehnDotNet.ApplicationLayer.Services;
 using TehnDotNet.ApplicationLayer.Services.Interfaces;
@@ -26,8 +30,35 @@ builder.Services.AddScoped<IPublisherRepository, PublisherRepository>();
 builder.Services.AddScoped<IPublisherService, PublisherService>();
 builder.Services.AddScoped<IAuthorRepository, AuthorRepository>();
 builder.Services.AddScoped<IAuthorService, AuthorService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 #warning Sensitive data here. Please move it to appsettings.json.
-builder.Services.AddDbContext<DatabaseContext>(options => options.UseNpgsql("Host=localhost;Port=5432;Database=libraryv2;Username=postgres;Password="));
+builder.Services.AddDbContext<DatabaseContext>(options => options.UseNpgsql("Host=localhost;Port=5432;Database=libraryv2;Username=postgres;Password=changeme"));
+
+// Identity
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<DatabaseContext>()
+    .AddDefaultTokenProviders();
+
+// JWT Authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+    };
+});
 
 var app = builder.Build();
 
@@ -36,6 +67,7 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
     context.Database.Migrate();
     DatabaseSeeder.SeedAuthorsAndPublishers(context);
+    await DatabaseSeeder.SeedRolesAsync(scope.ServiceProvider);
 }
 
 // Configure the HTTP request pipeline.
@@ -58,6 +90,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -1,9 +1,20 @@
+using Microsoft.AspNetCore.Identity;
 using TehnDotNet.Entities;
 
 namespace TehnDotNet.Seed;
 
 public static class DatabaseSeeder
 {
+    public static async Task SeedRolesAsync(IServiceProvider serviceProvider)
+    {
+        var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+        if (!await roleManager.RoleExistsAsync("Admin"))
+        {
+            await roleManager.CreateAsync(new IdentityRole("Admin"));
+        }
+    }
+
     public static void SeedAuthorsAndPublishers(DatabaseContext context)
     {
         if (!context.Authors.Any())
